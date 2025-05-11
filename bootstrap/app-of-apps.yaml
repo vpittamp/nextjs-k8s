@@ -13,9 +13,9 @@ spec:
   source:
     repoURL: https://github.com/vpittamp/nextjs-k8s.git
     targetRevision: HEAD
-    path: apps                    # scan every child folder
+    path: apps          # <── was “k8s”
     directory:
-      recurse: true               # 🔑 discover all child Application YAMLs
+      recurse: true             # 🔑 discover all child Application YAMLs
   syncPolicy:
     automated:
       prune: true
