@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: infra-secrets
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/vpittamp/nextjs-k8s.git
+    targetRevision: HEAD
+    path: apps/infra-secrets/base
+  destination:
+    name: in-cluster
+    namespace: external-secrets
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: ["CreateNamespace=true"]
