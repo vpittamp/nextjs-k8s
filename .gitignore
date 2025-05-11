@@ -35,3 +35,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+scripts/sa.pub
+scripts/openid-configuration.json
+scripts/jwks.json
+scripts/jwks-remote.json
+-
