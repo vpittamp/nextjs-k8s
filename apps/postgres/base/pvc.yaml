@@ -1,19 +1,12 @@
-# pvc.yaml
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: pg-local-pv
-spec:
-  capacity: { storage: 1Gi }
-  accessModes: [ReadWriteOnce]
-  hostPath: { path: /var/lib/postgresql/kind }
----
+# apps/postgres/base/pvc.yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: pg-data
   namespace: nextjs
 spec:
-  accessModes: [ReadWriteOnce]
-  resources: { requests: { storage: 1Gi } }
-  volumeName: pg-local-pv
+  accessModes: [ "ReadWriteOnce" ]
+  storageClassName: ""            # must match the PV above
+  resources:
+    requests:
+      storage: 5Gi

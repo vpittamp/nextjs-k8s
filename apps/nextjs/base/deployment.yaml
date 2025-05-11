@@ -18,6 +18,8 @@ spec:
       containers:
       - name: nextjs
         image: vpittamp.azurecr.io/chat-frontend:0.1.9
+        envFrom:
+          - configMapRef: { name: myapp-config }
         env:
           - name: POSTGRES_URL
             valueFrom:

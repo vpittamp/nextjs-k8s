@@ -1,11 +1,11 @@
-# deployment.yaml
+# apps/postgres/base/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
   namespace: nextjs
 spec:
-  replicas: 1                 # Postgres ≈ single-writer
+  replicas: 1
   selector:
     matchLabels: { app: postgres }
   template:
@@ -15,13 +15,24 @@ spec:
       containers:
       - name: postgres
         image: postgres:15-alpine
-        ports: [{ containerPort: 5432 }]
         env:
-          - { name: POSTGRES_USER,     value: "postgres" }
-          - { name: POSTGRES_PASSWORD, value: "postgres" }
-          - { name: POSTGRES_DB,       value: "postgres" }
+        - name: POSTGRES_USER     ; value: postgres
+        - name: POSTGRES_PASSWORD ; value: postgres
+        - name: POSTGRES_DB       ; value: postgres
+        ports:
+        - containerPort: 5432
         volumeMounts:
-          - { name: data, mountPath: /var/lib/postgresql/data }
+        - mountPath: /var/lib/postgresql/data
+          name: pgdata
+        readinessProbe:
+          exec: { command: ["pg_isready","-U","postgres"] }
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          exec: { command: ["pg_isready","-U","postgres"] }
+          initialDelaySeconds: 20
+          periodSeconds: 20
       volumes:
-        - name: data
-          persistentVolumeClaim: { claimName: pg-data }
+      - name: pgdata
+        persistentVolumeClaim:
+          claimName: pg-data

@@ -1,0 +1,14 @@
+# apps/postgres/base/pv.yaml   (NEW – replace pg-local-pv)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pg-local-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""            # empty ⇒ static PV
+  hostPath:
+    path: /data/postgres           # any path on the kind node
+    type: DirectoryOrCreate        # <- guarantees the dir is created
