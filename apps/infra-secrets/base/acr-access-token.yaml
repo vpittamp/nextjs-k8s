@@ -2,7 +2,7 @@ apiVersion: generators.external-secrets.io/v1alpha1
 kind: ACRAccessToken
 metadata:
   name: vpittamp-acr-token
-  namespace: local-demo
+  namespace: nextjs
 spec:
   tenantId: 0c4da9c5-40ea-4e7d-9c7a-e7308d4f8e38
   registry: vpittamp.azurecr.io
@@ -12,7 +12,7 @@ spec:
     workloadIdentity:
       serviceAccountRef:
         name: acr-sa
-        namespace: local-demo
+        namespace: nextjs
         audiences:
           - api://AzureADTokenExchange
 
