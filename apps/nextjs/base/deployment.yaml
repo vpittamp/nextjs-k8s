@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nextjs-deployment
+  namespace: nextjs 
 spec:
   replicas: 2
   selector:
@@ -16,4 +17,4 @@ spec:
         - name: vpittamp-acr-dockercfg   # secret produced by ESO
       containers:
       - name: nextjs
-        image: vpittamp.azurecr.io/nextjs:latest
+        image: vpittamp.azurecr.io/chat-frontend:0.1.9
