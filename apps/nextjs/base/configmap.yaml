@@ -6,3 +6,4 @@ metadata:
 data:
   REDIS_URL: "redis://redis-service.redis.svc.cluster.local:6379"
   REDIS_AVAILABLE: "True"
+  POSTGRES_URL: "postgresql://postgres:postgres@postgres-service.nextjs.svc.cluster.local:5432/postgres"

@@ -1,0 +1,19 @@
+# apps/postgres/application.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgres
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/vpittamp/nextjs-k8s.git
+    targetRevision: HEAD
+    path: apps/postgres/base
+  destination:
+    name: in-cluster
+    namespace: nextjs          # reuse the same ns as Next.js/Redis
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: ["CreateNamespace=true"]

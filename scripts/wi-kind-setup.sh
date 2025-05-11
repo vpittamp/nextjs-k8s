@@ -623,6 +623,40 @@ login_argocd_cli() {
   log "✅  $CMD CLI login succeeded (context '$ARGOCD_SERVER')"
 }
 
+ensure_acr_pull_role() {
+  local acr_name="${ACR_NAME:-vpittamp}"                      # ↳ change if you ever rename the registry
+  local acr_rg="${ACR_RG:-$AZURE_RESOURCE_GROUP}"            # ↳ defaults to rg3 from devcontainer.env
+
+  # lookup registry resource-id & current Radius SP object-id
+  local acr_id
+  acr_id=$(az acr show -n "$acr_name" -g "$acr_rg" --query id -o tsv) \
+          || { log "❌  Unable to resolve ACR '$acr_name'"; return 1; }
+
+  local radius_sp
+  radius_sp=$(az ad sp list --display-name "$APP_NAME" --query '[0].id' -o tsv)
+  [[ -n "$radius_sp" ]] || { log "❌  Radius SP not found"; return 1; }
+
+  # does the assignment already exist?
+  if az role assignment list \
+         --assignee "$radius_sp" \
+         --role "AcrPull" \
+         --scope "$acr_id" \
+         --query '[0].name' -o tsv | grep -q .; then
+      log "✅  AcrPull already present for Radius SP on $acr_name"
+  else
+      log "🔐  Granting AcrPull on $acr_name to Radius SP…"
+      az role assignment create \
+          --assignee "$radius_sp" \
+          --role   "AcrPull" \
+          --scope  "$acr_id" -o none
+      log "✅  AcrPull granted"
+  fi
+}
+
+refresh_app_id() {
+  APP_ID="$(az ad app list --display-name "$APP_NAME" --query '[0].appId' -o tsv)"
+  log "🔄  Refreshed APP_ID → $APP_ID"
+}
 ###############################################################################
 # Execution order
 ###############################################################################
@@ -634,12 +668,15 @@ upload_openid_docs
 install_workload_identity_webhook
 ensure_radius_app_registration
 run_rad_identity
+refresh_app_id
 install_radius
 ensure_cluster_oidc_matches_storage
 
 resolve_keyvault
 install_external_secrets_operator
 create_eso_service_account
+ensure_acr_pull_role
+export APP_ID 
 render_infra_secrets
 
 install_argocd
