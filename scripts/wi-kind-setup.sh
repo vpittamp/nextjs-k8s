@@ -44,6 +44,8 @@ SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KIND_IMAGE_VERSION="${KIND_IMAGE_VERSION:-v1.29.0}"
 AZURE_STORAGE_CONTAINER='$web'   # static-website container
 WI_ENV="${SCRIPT_PATH}/../.devcontainer/wi.env"
+DEPLOY_DIR="${DEPLOY_DIR:-${SCRIPT_PATH}/../deployments}"
+
 
 help() { echo "Usage: $0 <LOCATION> <RESOURCE_GROUP> [KEYVAULT_NAME]"; exit 0; }
 [[ ${1:-} =~ ^-h|--help$ ]] && help
@@ -317,6 +319,19 @@ install_external_secrets_operator() {
   helm repo update >/dev/null
   helm upgrade --install external-secrets external-secrets/external-secrets \
        -n "$ESO_NS" --create-namespace --wait
+}
+
+render_infra_secrets() {
+  log "✏️  Rendering ESO / ACR templates into Git repo"
+  GITHUB_REPOSITORY=$(git config --get remote.origin.url | sed -E 's#.*/(.*)\.git#\1#')
+  if [[ -f "${SCRIPT_PATH}/render-deployments.sh" ]]; then
+    source "${SCRIPT_PATH}/render-deployments.sh"
+  else
+    log "❌  scripts/render-deployments.sh not found – aborting"; exit 1
+  fi
+  git add apps/infra-secrets
+  git commit -m "chore: render infra-secrets manifests [ci skip]" || true
+  git push origin HEAD
 }
 
 create_eso_service_account() {
@@ -625,6 +640,7 @@ ensure_cluster_oidc_matches_storage
 resolve_keyvault
 install_external_secrets_operator
 create_eso_service_account
+render_infra_secrets
 
 install_argocd
 enable_admin_api_key
