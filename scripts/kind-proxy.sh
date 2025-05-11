@@ -24,16 +24,21 @@ launch_kind_api_proxy() {
   cat >"${WORK_DIR}/nginx-kind.conf" <<EOF
 events {}
 stream {
-  upstream apiserver { server ${CP}:6443; }
-  upstream argocd    { server ${CP}:30080; }
+  upstream apiserver  { server ${CP}:6443; }
+  upstream argocd_http  { server ${CP}:30080; }
+  upstream argocd_https { server ${CP}:30443; }
 
   server {            # Kubernetes API
     listen 6443;
     proxy_pass apiserver;
   }
-  server {            # Argo CD NodePort
+  server {            # Argo CD NodePort (HTTP)
     listen 30080;
-    proxy_pass argocd;
+    proxy_pass argocd_http;
+  }
+  server {            # Argo CD NodePort (HTTPS)
+    listen 30443;
+    proxy_pass argocd_https;
   }
 }
 EOF
@@ -47,7 +52,7 @@ EOF
   docker build -q -f "${WORK_DIR}/Dockerfile" -t kind-api-proxy-img "${WORK_DIR}"
   docker rm -f kind-api-proxy >/dev/null 2>&1 || true
   docker run -d --name kind-api-proxy --network kind \
-         -p 6445:6443 -p 30080:30080 kind-api-proxy-img
+         -p 6445:6443 -p 30080:30080 -p 30443:30443 kind-api-proxy-img
 
   # wait until the API side is healthy
   until curl -ks https://host.docker.internal:6445/livez >/dev/null 2>&1; do sleep 2; done

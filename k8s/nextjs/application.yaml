@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nextjs                    # unique across the whole cluster
+  namespace: argocd               # always where Argo CD itself runs
+spec:
+  project: default
+
+  # ---- where to find the manifests ----
+  source:
+    repoURL: https://github.com/vpittamp/nextjs-k8s.git
+    targetRevision: HEAD          # or a branch / tag / commit SHA
+    path: apps/nextjs/base        # ← points at the nextjs manifests
+    # uncomment if you switch to Helm or Kustomize in future
+    # helm:
+    #   valueFiles:
+    #     - values.yaml
+
+  # ---- where to deploy them ----
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nextjs             # isolated namespace for this service
+
+  syncPolicy:
+    automated:
+      prune: true                 # delete removed objects
+      selfHeal: true              # fix drift
+    syncOptions:
+      - CreateNamespace=true

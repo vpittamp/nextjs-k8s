@@ -53,7 +53,8 @@ KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-$RESOURCE_GROUP}"
 # KEYVAULT_NAME="${3:-${KEYVAULT_NAME:-}}"
 APP_NAME="${KIND_CLUSTER_NAME}-radius-app"
 
-ARGO_PORT="${ARGO_PORT:-8084}" 
+ARGO_HTTP_PORT="${ARGO_HTTP_PORT:-30080}"
+ARGO_HTTPS_PORT="${ARGO_HTTPS_PORT:-30443}"
 ###############################################################################
 # 3. Storage account – reuse or create
 ###############################################################################
@@ -500,14 +501,14 @@ generate_argocd_admin_token() {
   pwd=$(kubectl -n argocd get secret argocd-initial-admin-secret \
         -o jsonpath='{.data.password}' | base64 -d)
 
-  export ARGOCD_SERVER="127.0.0.1:${ARGO_PORT}"
-  # wait until /healthz answers to avoid a race with port-forward
+  export ARGOCD_SERVER="host.docker.internal:${ARGO_HTTP_PORT}"
+
   for i in {1..30}; do
       curl -fs "http://$ARGOCD_SERVER/healthz" >/dev/null && break || sleep 2
   done
 
   argocd login "$ARGOCD_SERVER" --username admin --password "$pwd" \
-         --plaintext --grpc-web --insecure      # <-- note --plaintext :contentReference[oaicite:3]{index=3}
+         --plaintext --grpc-web --insecure
   token=$(argocd account generate-token --account admin --expires-in 15m)
   echo -n "$token" >/tmp/argocd-admin.token
   log "📮  Token written to /tmp/argocd-admin.token"
@@ -551,7 +552,7 @@ configure_argocd() {
 }
 
 apply_app_of_apps() {
-  local APP_FILE="${SCRIPT_PATH}/../.devcontainer/app-of-apps.yaml"
+  local APP_FILE="${SCRIPT_PATH}/../bootstrap/app-of-apps.yaml"
   log "📦  Applying Argo CD app-of-apps ($APP_FILE)"
   kubectl apply -f "$APP_FILE"
 }
@@ -560,20 +561,52 @@ apply_app_of_apps() {
 # 9. Expose dashboard & token printing (VS Code port hints)
 ###############################################################################
 expose_argocd() {
-  # 30080 is already proxied by `kind-proxy` → host.docker.internal
-  log "🌐  Argo CD UI → http://localhost:30080  (proxy)"
-  log "🌐  Local PF  → http://127.0.0.1:${LOCAL_ARGO_PORT}"
-  # Optional: write a VS Code dev-container hint
-  echo -e "AROGCD_URL=http://localhost:30080\nAROGCD_TOKEN=$(cat /tmp/argocd-admin.token)" > /workspaces/.argocd-env
+  log "🌐  Argo CD UI → http://localhost:${ARGO_HTTP_PORT}  (via NGINX proxy)"
+  echo -e "ARGOCD_URL=http://localhost:${ARGO_HTTP_PORT}\nARGOCD_TOKEN=$(cat /tmp/argocd-admin.token)" > /workspaces/.argocd-env
 }
 
 print_argocd_admin_password() {
   log "🔑  Argo CD one-time admin password:"
   kubectl -n argocd get secret argocd-initial-admin-secret \
           -o jsonpath='{.data.password}' | base64 -d; echo
-  log "🌐  Open http://localhost:${ARGO_PORT} and log in with user 'admin'"
+  log "🌐  Open http://localhost:${ARGO_HTTP_PORT} and log in with user 'admin'"
 }
 
+ patch_argocd_service_nodeport() {
+   # Allow caller to override; fall back to conventional ports.
+   ARGO_HTTP_PORT=${ARGO_HTTP_PORT:-30080}
+   ARGO_HTTPS_PORT=${ARGO_HTTPS_PORT:-30443}
+ 
+   log "🔧  Converting argocd-server Service ➜ NodePort (${ARGO_HTTP_PORT}/${ARGO_HTTPS_PORT})"
+ 
+   # Build the RFC‑6902 patch with a heredoc to make quoting & variable expansion reliable
+   local patch
+   patch=$(cat <<EOF
+[
+  {"op":"replace","path":"/spec/type","value":"NodePort"},
+  {"op":"add","path":"/spec/ports/0/nodePort","value":${ARGO_HTTP_PORT}},
+  {"op":"add","path":"/spec/ports/1/nodePort","value":${ARGO_HTTPS_PORT}}
+]
+EOF
+)
+
+   kubectl -n argocd patch svc argocd-server --type='json' -p="${patch}"
+ }
+
+login_argocd_cli() {
+  log "🔐  Logging in to Argo CD CLI (host.docker.internal:${ARGO_HTTP_PORT})"
+  export ARGOCD_SERVER="host.docker.internal:${ARGO_HTTP_PORT}"
+  local pwd
+  pwd=$(kubectl -n argocd get secret argocd-initial-admin-secret \
+        -o jsonpath='{.data.password}' | base64 -d)
+  # "argocd" CLI is shipped in the dev‑container; fall back to gocd alias if present
+  local CMD
+  if command -v argocd &>/dev/null; then CMD=argocd; else CMD=gocd; fi
+  $CMD login "$ARGOCD_SERVER" --username admin --password "$pwd" --insecure --plaintext || {
+      log "⚠️  $CMD login failed (non‑fatal)"; return 0;
+  }
+  log "✅  $CMD CLI login succeeded (context '$ARGOCD_SERVER')"
+}
 
 ###############################################################################
 # Execution order
@@ -594,12 +627,14 @@ install_external_secrets_operator
 create_eso_service_account
 
 install_argocd
+enable_admin_api_key
+patch_argocd_service_nodeport          # <─ 🔑 **new** step
 enable_argocd_insecure
-enable_admin_api_key     # <-- NEW
 wait_for_argocd
-start_argocd_port_forward
+login_argocd_cli 
+# Port‑forwarding is no longer needed – interact over NodePort instead
 print_argocd_admin_password
 apply_app_of_apps
 
 log "🎉  wi-kind-setup complete – cluster ‘$KIND_CLUSTER_NAME’, storage ‘$AZURE_STORAGE_ACCOUNT’, Key Vault ‘$KEYVAULT_NAME’"
-log "🔗  Starting port-forward on localhost:${ARGO_PORT}"
+log "🔗  Starting port-forward on localhost:${ARGO_HTTP_PORT}"

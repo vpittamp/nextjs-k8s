@@ -74,13 +74,13 @@
 		}
 	],
 	"portsAttributes": {
-		"3000": {
-			"label": "demo-app",
+		"8080": {
+			"label": "kind",
 			"onAutoForward": "openBrowser",
 			"protocol": "http"
 		},
-		"8081": {
-			"label": "k3s",
+		"30080": {
+			"label": "argo-cd",
 			"onAutoForward": "silent"
 		}
 	},
