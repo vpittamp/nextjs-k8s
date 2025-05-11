@@ -16,9 +16,13 @@ spec:
       - name: postgres
         image: postgres:15-alpine
         env:
-        - name: POSTGRES_USER     ; value: postgres
-        - name: POSTGRES_PASSWORD ; value: postgres
-        - name: POSTGRES_DB       ; value: postgres
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: postgres
+        - name: POSTGRES_DB
+          value: postgres
+
         ports:
         - containerPort: 5432
         volumeMounts:
