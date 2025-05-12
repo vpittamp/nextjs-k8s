@@ -17,9 +17,12 @@ spec:
         - name: vpittamp-acr-dockercfg   # secret produced by ESO
       containers:
       - name: nextjs
-        image: vpittamp.azurecr.io/chat-frontend:0.1.9
+        image: vpittamp.azurecr.io/chat-frontend:0.2.0
         envFrom:
-          - configMapRef: { name: myapp-config }
+        - secretRef:
+            name: kv-vault 
+        - configMapRef: { name: myapp-config }
+          
         env:
           - name: NEXTAUTH_URL
             valueFrom: { configMapKeyRef: { name: myapp-config, key: NEXTAUTH_URL } }

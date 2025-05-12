@@ -8,7 +8,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: localhost              # host header sent by the kind-proxy
+  - host: chat.localtest.me
     http:
       paths:
       - path: /
