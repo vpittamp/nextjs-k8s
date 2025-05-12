@@ -19,8 +19,8 @@ spec:
           service:
             type: NodePort
             nodePorts:
-              http: 30000 
-              https: 30443
+              http: 31080 
+              https: 31443
   destination:
     name: in-cluster
     namespace: ingress-nginx
