@@ -5,8 +5,9 @@ metadata:
   name: pg-data
   namespace: nextjs
 spec:
-  accessModes: [ "ReadWriteOnce" ]
-  storageClassName: ""            # must match the PV above
+  storageClassName: ""            # must match PV
+  volumeName: pg-local-pv-v2      # bind to the NEW PV
+  accessModes: [ReadWriteOnce]
   resources:
     requests:
       storage: 5Gi

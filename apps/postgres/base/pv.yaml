@@ -1,14 +1,14 @@
-# apps/postgres/base/pv.yaml   (NEW – replace pg-local-pv)
+# apps/postgres/base/pv.yaml  (rename file or adjust metadata.name)
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: pg-local-pv
+  name: pg-local-pv-v2            # NEW name
 spec:
   capacity:
     storage: 5Gi
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: ""            # empty ⇒ static PV
+  accessModes: [ReadWriteOnce]
+  storageClassName: ""            # static
+  persistentVolumeReclaimPolicy: Retain
   hostPath:
-    path: /data/postgres           # any path on the kind node
-    type: DirectoryOrCreate        # <- guarantees the dir is created
+    path: /data/postgres          # identical path
+    type: DirectoryOrCreate
