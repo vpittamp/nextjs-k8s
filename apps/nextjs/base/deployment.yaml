@@ -1,8 +1,9 @@
+# 'apps/nextjs/base/deployment.yaml'
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nextjs-deployment
-  namespace: nextjs 
+  namespace: nextjs
 spec:
   replicas: 2
   selector:
@@ -14,18 +15,20 @@ spec:
         app: nextjs
     spec:
       imagePullSecrets:
-        - name: vpittamp-acr-dockercfg   # secret produced by ESO
+        - name: vpittamp-acr-dockercfg # secret produced by ESO
       containers:
       - name: nextjs
         image: vpittamp.azurecr.io/chat-frontend:0.2.0
         envFrom:
-        - secretRef:   { name: app-env }      # <── renamed-secret values
-        - configMapRef:{ name: myapp-config } # <── public values
+        - secretRef:
+            name: app-env # <── renamed-secret values
+        - configMapRef:
+            name: myapp-config # <── public values
         livenessProbe:
-          httpGet: { path: /ping, port: 3000 }
+          httpGet: { path: /ping, port: 3000 } # Consider changing port to a numeric value: port: 3000
           initialDelaySeconds: 15
           periodSeconds: 20
         readinessProbe:
-          httpGet: { path: /ping, port: 3000 }
+          httpGet: { path: /ping, port: 3000 } # Consider changing port to a numeric value: port: 3000
           initialDelaySeconds: 5
           periodSeconds: 10
