@@ -21,8 +21,11 @@ spec:
         envFrom:
           - configMapRef: { name: myapp-config }
         env:
+          - name: NEXTAUTH_URL
+            valueFrom: { configMapKeyRef: { name: myapp-config, key: NEXTAUTH_URL } }
+          - name: NEXT_PUBLIC_SITE_URL
+            valueFrom: { configMapKeyRef: { name: myapp-config, key: NEXT_PUBLIC_SITE_URL } }
+          - name: TRUST_PROXY
+            value: "1"
           - name: POSTGRES_URL
-            valueFrom:
-              configMapKeyRef:
-                name: myapp-config
-                key: POSTGRES_URL
+            valueFrom: { configMapKeyRef: { name: myapp-config, key: POSTGRES_URL } }

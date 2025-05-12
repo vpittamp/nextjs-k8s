@@ -52,7 +52,7 @@ EOF
   docker build -q -f "${WORK_DIR}/Dockerfile" -t kind-api-proxy-img "${WORK_DIR}"
   docker rm -f kind-api-proxy >/dev/null 2>&1 || true
   docker run -d --name kind-api-proxy --network kind \
-         -p 6445:6443 -p 30080:30080 -p 30443:30443 kind-api-proxy-img
+         -p 6445:6443 -p 30080:30080 -p 30443:30443 -p 3000:3000 kind-api-proxy-img
 
   # wait until the API side is healthy
   until curl -ks https://host.docker.internal:6445/livez >/dev/null 2>&1; do sleep 2; done

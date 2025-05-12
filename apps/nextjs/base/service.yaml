@@ -4,10 +4,10 @@ metadata:
   name: nextjs-service
   namespace: nextjs 
 spec:
+  type: ClusterIP
   selector:
     app: nextjs
   ports:
-    - protocol: TCP
-      port: 3000
-      targetPort: 3000
-  type: NodePort
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP

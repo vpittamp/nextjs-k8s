@@ -1,0 +1,27 @@
+# apps/ingress/application.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress-nginx
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: default
+  source:
+    repoURL: https://kubernetes.github.io/ingress-nginx   # official Helm repo
+    chart: ingress-nginx
+    targetRevision: 4.10.1
+    helm:
+      values: |
+        controller:
+          service:
+            type: NodePort
+            nodePorts:
+              http: 30000
+              https: 30443
+  destination:
+    name: in-cluster
+    namespace: ingress-nginx
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+    syncOptions: ["CreateNamespace=true"]
