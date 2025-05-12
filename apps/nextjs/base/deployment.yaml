@@ -25,9 +25,9 @@ spec:
           
         env:
           - name: NEXTAUTH_URL
-            valueFrom: { configMapKeyRef: { name: myapp-config, key: NEXTAUTH_URL } }
+            valueFrom: { configMapKeyRef: { name: myapp-config, key: NEXTAUTH-URL } }
           - name: POSTGRES_URL
-            valueFrom: { configMapKeyRef: { name: myapp-config, key: POSTGRES_URL } }
+            valueFrom: { configMapKeyRef: { name: myapp-config, key: POSTGRES-URL } }
         livenessProbe:
           httpGet:
             path: /ping        # your middleware exposes this
