@@ -174,19 +174,24 @@ create_kind_cluster() {
                            -o json | jq -r '.primaryEndpoints.web')
   log "☸️  (re)creating Kind cluster '$KIND_CLUSTER_NAME'"
   kind delete cluster --name "$KIND_CLUSTER_NAME" &>/dev/null || true
-  cat <<EOF | kind create cluster --name "$KIND_CLUSTER_NAME" \
-                   --image "kindest/node:${KIND_IMAGE_VERSION}" --config=-
+  cat <<EOF | kind create cluster --name "$KIND_CLUSTER_NAME" --image "kindest/node:${KIND_IMAGE_VERSION}" --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
 - role: control-plane
   extraPortMappings:
-  - containerPort: 80
-    hostPort: 80
-    protocol: TCP
-  - containerPort: 443
-    hostPort: 443
-    protocol: TCP
+    - containerPort: 80
+      hostPort: 80
+      protocol: TCP
+    - containerPort: 443
+      hostPort: 443
+      protocol: TCP
+    - containerPort: 31080
+      hostPort: 31080
+      protocol: TCP
+    - containerPort: 31443
+      hostPort: 31443
+      protocol: TCP
   kubeadmConfigPatches:
   - |
     kind: ClusterConfiguration
