@@ -21,9 +21,6 @@ spec:
         envFrom:
         - secretRef:   { name: app-env }      # <── renamed-secret values
         - configMapRef:{ name: myapp-config } # <── public values
-        env:                                   # keys that need a *specific* source
-        - name: POSTGRES_URL                   # Drizzle expects this exact var :contentReference[oaicite:2]{index=2}
-          valueFrom: { secretKeyRef: { name: app-env, key: POSTGRES_URL } }
         livenessProbe:
           httpGet: { path: /ping, port: 3000 }
           initialDelaySeconds: 15
