@@ -1,13 +1,16 @@
+# apps/nextjs/base/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: myapp-config
   namespace: nextjs
 data:
-  REDIS_URL: "redis://redis-service.redis.svc.cluster.local:6379"
-  REDIS_AVAILABLE: "True"
+  # public / non-secret
+  NEXTAUTH_URL:          "http://chat.localtest.me:31080"
+  NEXT_PUBLIC_BASE_URL:  "http://chat.localtest.me:31080"
+  NEXT_PUBLIC_SITE_URL:  "http://chat.localtest.me:31080"
 
-  # public values are OK here
-  NEXTAUTH_URL:       "http://chat.localtest.me:31080"
-  NEXT_PUBLIC_BASE_URL: "http://chat.localtest.me:31080"
-  NEXT_PUBLIC_SITE_URL: "http://chat.localtest.me:31080"
+  # runtime plumbing
+  REDIS_URL:             "redis://redis-service.redis.svc.cluster.local:6379"
+  REDIS_AVAILABLE:       "True"
+  TRUST_PROXY:           "1"   

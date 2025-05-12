@@ -19,24 +19,16 @@ spec:
       - name: nextjs
         image: vpittamp.azurecr.io/chat-frontend:0.2.0
         envFrom:
-        - secretRef:
-            name: kv-vault 
-        - configMapRef: { name: myapp-config }
-          
-        env:
-          - name: NEXTAUTH_URL
-            valueFrom: { configMapKeyRef: { name: myapp-config, key: NEXTAUTH-URL } }
-          - name: POSTGRES_URL
-            valueFrom: { configMapKeyRef: { name: myapp-config, key: POSTGRES-URL } }
+        - secretRef:   { name: app-env }      # <── renamed-secret values
+        - configMapRef:{ name: myapp-config } # <── public values
+        env:                                   # keys that need a *specific* source
+        - name: POSTGRES_URL                   # Drizzle expects this exact var :contentReference[oaicite:2]{index=2}
+          valueFrom: { secretKeyRef: { name: app-env, key: POSTGRES_URL } }
         livenessProbe:
-          httpGet:
-            path: /ping        # your middleware exposes this
-            port: 3000
+          httpGet: { path: /ping, port: 3000 }
           initialDelaySeconds: 15
           periodSeconds: 20
-        readinessProbe:          # (optional but recommended)
-          httpGet:
-            path: /ping
-            port: 3000
+        readinessProbe:
+          httpGet: { path: /ping, port: 3000 }
           initialDelaySeconds: 5
           periodSeconds: 10
