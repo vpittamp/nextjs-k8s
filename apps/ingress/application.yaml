@@ -14,10 +14,12 @@ spec:
     helm:
       values: |
         controller:
+          publishService:
+            enabled: false
           service:
             type: NodePort
             nodePorts:
-              http: 30000
+              http: 30000 
               https: 30443
   destination:
     name: in-cluster
