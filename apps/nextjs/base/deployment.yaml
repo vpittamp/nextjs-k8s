@@ -26,9 +26,17 @@ spec:
         env:
           - name: NEXTAUTH_URL
             valueFrom: { configMapKeyRef: { name: myapp-config, key: NEXTAUTH_URL } }
-          - name: NEXT_PUBLIC_SITE_URL
-            valueFrom: { configMapKeyRef: { name: myapp-config, key: NEXT_PUBLIC_SITE_URL } }
-          - name: TRUST_PROXY
-            value: "1"
           - name: POSTGRES_URL
             valueFrom: { configMapKeyRef: { name: myapp-config, key: POSTGRES_URL } }
+        livenessProbe:
+          httpGet:
+            path: /ping        # your middleware exposes this
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:          # (optional but recommended)
+          httpGet:
+            path: /ping
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10

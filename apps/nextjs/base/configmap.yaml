@@ -6,9 +6,8 @@ metadata:
 data:
   REDIS_URL: "redis://redis-service.redis.svc.cluster.local:6379"
   REDIS_AVAILABLE: "True"
-  POSTGRES_URL: "postgresql://postgres:postgres@postgres-service.nextjs.svc.cluster.local:5432/postgres"
 
   # public values are OK here
-  NEXTAUTH_URL:       "http://localhost:30000"
-  NEXT_PUBLIC_BASE_URL: "http://localhost:30000"
-  TRUST_PROXY: "1"
+  NEXTAUTH_URL:       "http://chat.localtest.me:31080"
+  NEXT_PUBLIC_BASE_URL: "http://chat.localtest.me:31080"
+  NEXT_PUBLIC_SITE_URL: "http://chat.localtest.me:31080"
