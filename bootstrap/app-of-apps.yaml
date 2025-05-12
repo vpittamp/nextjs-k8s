@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://github.com/vpittamp/nextjs-k8s.git
     targetRevision: HEAD
-    path: bootstrap          # <── was “k8s”
+    path: apps          # <── was “k8s”
     directory:
       recurse: true             # 🔑 discover all child Application YAMLs
   syncPolicy:
